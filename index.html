@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>IT 202 Final</title>
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <style>
+        #map {
+          height: 400px;  /* The height is 400 pixels */
+          width: 100%;  /* The width is the width of the web page */
+        }
+    </style>
+
+</head>
+<body>
+    <h1 class="mdc-typography--headline1" style="text-align:center">Kevin Fong</h1>
+    <div id="map"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        var map;
+        var myLat;
+        var myLong;
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showPosition);
+        } else { 
+          console.log("Geolocation is not supported by this browser.");
+        }
+      
+        function showPosition(position) {
+            myLat = position.coords.latitude; 
+            myLong = position.coords.longitude;
+            initMap();
+            getData();
+        }
+
+        // Initialize and add the map
+        function initMap() {
+          // The location of Chicago
+          var chicago = {lat: myLat, lng: myLong};
+          // The map, centered at Chicago
+          map = new google.maps.Map(
+              document.getElementById('map'), {zoom: 12, center: chicago});
+              var location = {lat: parseFloat(myLat), lng: parseFloat(myLong) };
+            var marker = new google.maps.Marker({position: location, label: "You", map: map});
+        }
+
+        function getData(myLatitude, myLongitude){
+          var url = "https://data.cityofchicago.org/resource/9rg7-mz9y.json?";
+      
+          $.get(url, function(response){
+            var data = response;
+            createMarkers(data);
+          })
+        }
+
+        function createMarkers(data){
+          $.each(data, function(i,v){
+            var location = {lat: parseFloat(v.latitude), lng: parseFloat(v.longitude) }
+            var marker = new google.maps.Marker({position: location, map: map});
+        
+            var myDistance = distance(v.latitude, v.longitude, myLat, myLong);
+            var body = "District " + v.district + " (" + v.district_name + ")" + '<br>' +
+                        "Distance: " + myDistance + " km";
+
+            var infoWindow =  new google.maps.InfoWindow({content: body});
+            marker.addListener('click', function() {
+                infoWindow.open(map, marker);
+            });
+          })
+        }
+
+        function distance(lat, lng, lat0, lng0){
+            var deglen = 110.25
+            var x = lat - lat0
+            var y = (lng - lng0)*Math.cos(lat0)
+            return deglen*Math.sqrt(x*x + y*y)
+        }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDa4dMSOASs_iLQnhrPoQ8EZgj2Im_pZ7o&callback=initMap">
+  </script>
+</body>
+</html>
